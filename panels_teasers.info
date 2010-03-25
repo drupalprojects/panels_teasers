@@ -1,0 +1,7 @@
+; $Id$
+name = Panels Teasers
+description = Allow mini panels to handle teaser layouts.
+package = "Panels"
+dependencies[] = panels
+dependencies[] = panels_mini
+core = 6.x

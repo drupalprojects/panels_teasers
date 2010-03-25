@@ -1,0 +1,172 @@
+<?php
+//$Id$
+
+/**
+ * @file panels_teasers.module
+ *
+ * This module simple enables Mini Panels to control the layout
+ * of Teasers.
+ *
+ * Once enabled, visit a Node Type's Edit page, and expand the "Teaser Mini
+ * Panel" fieldset.  You will be able to select any Mini Panel with a Required
+ * Node Context.
+ *
+ */
+
+/**
+ * Preprocessor for node.tpl.php
+ */
+function panels_teasers_preprocess_node(&$vars){
+
+  if (!$vars['teaser']){
+    return;
+  }
+
+  //Get variables for the node type
+  $panels_teasers_mini_panel = variable_get('panels_teasers_mini_panel_'. $vars['node']->type, '');
+
+  if ($vars['teaser'] && $panels_teasers_mini_panel){
+    $vars['content'] = panels_teasers_render_mini_panel($panels_teasers_mini_panel, $vars['node']);
+
+    $panels_teasers_template_override = variable_get('panels_teasers_template_override_'. $vars['node']->type, '');
+
+    // @TODO: Use the node-teaser-panel.tpl file in the module folder
+    if ($panels_teasers_template_override){
+      $vars['template_file'] = 'node-teaser-panel';
+      $vars['template_files'][] = 'node-teaser-panel';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ *
+ * This is so that it will look for the node-topichub.tpl.php file here too.
+ */
+function panels_teasers_theme_registry_alter(&$theme_registry) {
+  $modulepath = drupal_get_path('module', 'panels_teasers');
+  array_unshift($theme_registry['node']['theme paths'], $modulepath);
+}
+
+
+/**
+ * Renders a mini panel using a node context.
+ */
+function panels_teasers_render_mini_panel($mini_panel_name, $node){
+
+  ctools_include('context');
+
+  $panel_mini = panels_mini_load($mini_panel_name);
+  $contexts[] = ctools_context_create('node', $node);
+  $context = ctools_context_match_required_contexts($panel_mini->requiredcontexts, $contexts);
+
+  $panel_mini->context = $panel_mini->display->context = ctools_context_load_contexts($panel_mini, FALSE, $context);
+
+//  $panel_mini->context = $panel_mini->display->context = ctools_context_load_contexts($panel_mini);
+
+  $panel_mini->display->css_id = panels_mini_get_id($panel_mini->name);
+  $panel_mini->display->args = array($node->nid);
+  $panel_mini->display->css_id = panels_mini_get_id($mini_panel_name);
+  $panel_mini->display->owner = $panel_mini;
+  // unique ID of this mini.
+  $panel_mini->display->owner->id = $panel_mini->name;
+
+  $output = 'hmm' . panels_render_display($panel_mini->display);
+
+  return $output;
+}
+
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function panels_teasers_form_alter(&$form, &$form_state, $form_id) {
+
+  switch($form_id){
+    case "":
+      break;
+
+    // Administer >> Content management >> Content types >> Edit
+    case 'node_type_form':
+      // The submitted value is auto-saved by node.module as a configuration variable with a name in the form 'rdf_schema_class_TYPE'
+
+      $message .= t("Here you may configure a Mini Panel to use as the layout handler for nodes of this type.");
+
+      //Mini Panel Select
+      $panels_teasers_mini_panel = variable_get('panels_teasers_mini_panel_'. $form['#node_type']->type, '');
+
+      $options[''] = '<None>';
+      $mini_panels = panels_mini_load_all();
+
+      //Loop through mini panels, detect required node context
+      foreach ($mini_panels as $mini_name => $mini){
+        //Loop through required context looking for node
+        foreach($mini->requiredcontexts as $context){
+          if ($context['name'] == 'node'){
+            $options[$mini->name] = $mini->title . '('.$mini->name.')';
+            continue;
+          }
+        }
+      }
+
+      if (count($options) == 1 ){
+        $message .= "<p><em class='warning'>" . t('No Mini Panels with a required Node Context found.') .'  '. l(t('Add a Mini Panel'), 'admin/build/panel-mini/add')."</em></p>";
+      }
+
+      $form['panels_teasers'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Teaser Mini Panel'),
+        '#description' => $message,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+
+      if ($panels_teasers_mini_panel){
+        $form['panels_teasers']['current'] = array(
+          '#type' => 'item',
+          '#title' => t('Current Layout'),
+          '#value' => l($panels_teasers_mini_panel, "admin/build/panel-mini/$panels_teasers_mini_panel/edit-content"),
+        );
+      }
+
+      $form['panels_teasers']['panels_teasers_mini_panel'] = array(
+        '#type' => 'select',
+        '#title' => t('Mini Panel'),
+        '#description' => t('Choose which Mini Panel you would like to use for the Node Teaser layout.'),
+        '#default_value' => $panels_teasers_mini_panel,
+        '#options' => $options,
+      );
+
+      //Template override
+      $form['panels_teasers']['panels_teasers_template_override'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Disable default node teaser template.'),
+        '#description' => t('Check this box to use the panel as the entire node template, using node-teaser-panel.tpl.php. Otherwise, the panel is inserted into the <code>$content</code> variable in node templates.'),
+        '#default_value' =>  variable_get('panels_teasers_template_override_'. $form['#node_type']->type, ''),
+      );
+
+      break;
+
+    //Display a link to the config pages on the Mini Panel Settings form
+    case 'panels_mini_edit_form':
+
+      $panel_mini = $form['panel_mini']['#value'];
+
+      //Looking for node types using this panel
+      foreach (node_get_types('names') as $type => $name){
+        if (variable_get("panels_teasers_mini_panel_$type", '') == $panel_mini->name){
+          $items[] = l($name, "admin/content/node-type/$type", array('query' => drupal_get_destination()));
+        }
+      }
+
+      if ($items){
+        $form['left']['settings']['panels_teasers'] = array(
+          '#type' => 'item',
+          '#title' => t('Node Teasers'),
+          '#value' => theme('item_list', $items),
+          '#description' => t('This Mini Panel is being used for the Teaser layout for these node types.'),
+        );
+      }
+      break;
+  }
+}
