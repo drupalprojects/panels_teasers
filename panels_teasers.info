@@ -5,3 +5,4 @@ package = "Panels"
 dependencies[] = panels
 dependencies[] = panels_mini
 core = 6.x
+
