@@ -8,8 +8,9 @@
  *   of the node_teasers Panel.
  *
  *  NOT YET IMPLEMENTED!  (Obviously.)
- */
+ *
 function panels_teasers_update_6200(&$sandbox){
   $ret = array();
   return $ret;
 }
+*/
