@@ -37,6 +37,13 @@ function panels_teasers_menu() {
 }
 
 /**
+ * Implementation of hook_perm().
+ */
+function panels_teasers_perm() {
+  return array('administer panel teasers');
+}
+
+/**
  * Menu Callback for node_teasers 'task' editor.
  *
  * This just redirects to the Page Manager editor for this task.
