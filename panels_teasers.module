@@ -71,8 +71,9 @@ function panels_teasers_preprocess_node(&$vars){
   ctools_include('context-task-handler');
 
   //Set a $node variable to prevent infinite looping
-  $node = &$vars['node'];
-  $node->panels_teasers = TRUE;
+  //Loads full node.  Preprocessor only loads a teaser node.
+  $node = node_load($vars['node']->nid);
+  $node->panels_teasers = $vars['node']->panels_teasers = TRUE;
 
   //Get Task and bail if disabled.
   $task = page_manager_get_task('node_teasers');
