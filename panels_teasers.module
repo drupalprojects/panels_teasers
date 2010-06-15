@@ -26,7 +26,7 @@ function panels_teasers_preprocess_node(&$vars){
   $panels_teasers_mini_panel = variable_get('panels_teasers_mini_panel_'. $vars['node']->type, '');
 
   if ($vars['teaser'] && $panels_teasers_mini_panel){
-    $vars['content'] = panels_teasers_render_mini_panel($panels_teasers_mini_panel, $vars['node']);
+    $vars['content'] = panels_teasers_render_mini_panel($panels_teasers_mini_panel, node_load($vars['node']->nid);
 
     $panels_teasers_template_override = variable_get('panels_teasers_template_override_'. $vars['node']->type, '');
 
