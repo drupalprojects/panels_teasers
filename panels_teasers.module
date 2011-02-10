@@ -14,7 +14,7 @@
  *
  */
 
-define('PANELS_TEASERS_REQUIRED_CTOOLS_API', '1.5');
+define('PANELS_TEASERS_REQUIRED_CTOOLS_API', '1.8');
 
 
 /**
