@@ -109,6 +109,7 @@ function panels_teasers_preprocess_node(&$vars){
   // Try each handler.
   foreach ($handlers as $handler) {
     //If $info exists, variant passed selection rules.  Break handler loop.
+    
     if ($info = panels_teasers_render($handler, $contexts, $args)){
       break;
     }
@@ -201,21 +202,22 @@ function panels_teasers_context_edit_content_submit(&$form, &$form_state) {
  * Check selection rules and, if passed, render the contexts.
  */
 function panels_teasers_render($handler, $base_contexts, $args, $test = TRUE) {
+
   // Go through arguments and see if they match.
   ctools_include('context');
   ctools_include('context-task-handler');
+  
   // Add my contexts
   $contexts = ctools_context_handler_get_handler_contexts($base_contexts, $handler);
 
   // Test.
-  if ($test && !ctools_context_handler_select($handler, $contexts)) {
+   if ($test && !ctools_context_handler_select($handler, $contexts)) {
     return;
   }
 
   if (isset($handler->handler)) {
     ctools_context_handler_pre_render($handler, $contexts, $args);
   }
-
   // Load the display
   $display = panels_panel_context_get_display($handler);
 
@@ -224,14 +226,12 @@ function panels_teasers_render($handler, $base_contexts, $args, $test = TRUE) {
   $display->template_replace = $handler->conf['template_replace'];
 
   // With an argument, this actually sets the display.
-  panels_get_current_page_display($display);
+  //panels_get_current_page_display($display);
 
   $info = array(
     'content' => panels_render_display($display),
     'template_replace' => !empty($handler->conf['template_replace']),
   );
-
-  $info['title'] = panels_display_get_title($display);
 
   return $info;
 }
