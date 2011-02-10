@@ -28,7 +28,7 @@ function panels_teasers_menu() {
   }
 
   $items['admin/build/teasers'] = array(
-    'title' => 'Teaser Panels',
+    'title' => 'Panel Teasers',
     'description' => 'Configure node teaser layout with Panels.',
     'access arguments' => array('administer panel teasers'),
     'page callback' => 'panels_teasers_edit',
