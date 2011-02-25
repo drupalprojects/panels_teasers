@@ -1,4 +1,3 @@
-; $Id$
 name = Panels Teasers
 description = Allow panels to handle teaser layouts.
 package = "Panels"
