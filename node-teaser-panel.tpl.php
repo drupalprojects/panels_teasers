@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @file node-teaser-panel.tpl.php
